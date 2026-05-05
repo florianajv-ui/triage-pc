@@ -4,13 +4,11 @@
     <meta charset="UTF-8">
     <title>AppliCata - PC CATA</title>
     
-    <!-- CONFIGURATION PLEIN ÉCRAN IPHONE -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="AppliCata">
     
-    <!-- Icône pour l'écran d'accueil -->
     <link rel="apple-touch-icon" sizes="180x180" href="https://raw.githubusercontent.com/appli-cata/AppliCata/main/favicon.png">
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/appli-cata/AppliCata/main/favicon.png">
 
@@ -21,9 +19,9 @@
             --red: #ef4444; --yellow: #f59e0b; --green: #22c55e;
             --black: #111827; --accent: #38bdf8;
             --neutral-btn: #1e293b;
+            --ped-color: #d8b4fe;
         }
 
-        /* Reset et gestion de l'encoche iPhone (Safe Area) */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; touch-action: manipulation; }
         
         body { 
@@ -33,7 +31,6 @@
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            /* Empêche le contenu de toucher l'heure/encoche */
             padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
             overflow-x: hidden; 
         }
@@ -67,20 +64,22 @@
         main { display: grid; grid-template-columns: 1fr 380px; gap: 12px; }
         @media (max-width: 1000px) { main { grid-template-columns: 1fr; } }
 
-        .category-card { background: #020617; border: 1px solid var(--border); padding: 10px; border-radius: 16px; }
+        .triage-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 10px; }
+        .category-card { background: #020617; border: 1px solid var(--border); padding: 10px; border-radius: 16px; position: relative; }
         .count-value { font-size: 1.8rem; font-weight: 800; text-align: center; margin: 4px 0; }
         
         .section-box { background: #020617; border: 1px solid var(--border); padding: 10px; border-radius: 16px; margin-bottom: 10px; }
         .section-title { color: var(--accent); font-size: 0.65rem; font-weight: bold; margin-bottom: 6px; text-transform: uppercase; }
+        .ped-title { color: var(--ped-color) !important; }
         
         input, select, textarea { width: 100%; background: #0f172a; border: 1px solid #334155; color: white; padding: 7px; border-radius: 6px; margin-bottom: 5px; font-size: 0.8rem; }
         .btn-primary { background: linear-gradient(135deg, #0ea5e9, #22c55e); color: #020617; font-weight: bold; padding: 10px; border: none; border-radius: 8px; width: 100%; cursor: pointer; margin-top: 5px; }
         
         .btn-counter { background: var(--neutral-btn); color: white; border: 1px solid #334155; font-size: 1.2rem; font-weight: bold; padding: 8px; border-radius: 8px; width: 100%; cursor: pointer; }
 
-        .besoin-row { display: flex; gap: 4px; margin-bottom: 6px; }
+        .besoin-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 8px; }
         .btn-plus { background: #1e293b; border: 1px dashed var(--accent); color: var(--accent); padding: 6px; border-radius: 6px; cursor: pointer; width: 100%; font-size: 0.7rem; font-weight: bold; }
-        .btn-remove { background: rgba(239, 68, 68, 0.1); border: 1px solid var(--red); color: var(--red); border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+        .btn-remove { background: var(--red); color: white; border: none; border-radius: 6px; padding: 4px; cursor: pointer; align-self: flex-end; }
 
         .flex-row { display: flex; gap: 4px; align-items: center; }
         .map-link-btn { background: #0ea5e9 !important; color: white !important; opacity: 0.3; pointer-events: none; height: 32px; width: 32px; border-radius: 6px; border: none; display: flex; align-items: center; justify-content: center;}
@@ -90,8 +89,6 @@
     </style>
 </head>
 <body>
-
-<!-- ... (Le reste du HTML reste identique aux versions précédentes) ... -->
 
 <div id="loginScreen">
     <div class="login-box">
@@ -103,13 +100,8 @@
 </div>
 
 <div class="app" id="appMain">
-    <!-- SYNTHESE -->
-    <div class="global-summary">
-        <div class="summary-item"><div class="summary-label">Total Victimes</div><div class="summary-total" id="global-total">0</div></div>
-        <div class="summary-item"><div class="summary-label">UA</div><div class="summary-total" id="global-ua" style="color:var(--red)">0</div></div>
-        <div class="summary-item"><div class="summary-label">UR</div><div class="summary-total" id="global-ur" style="color:var(--yellow)">0</div></div>
-        <div class="summary-item"><div class="summary-label">Impliqués</div><div class="summary-total" id="global-green" style="color:var(--green)">0</div></div>
-    </div>
+    <div class="global-summary" id="globalSummary">
+        </div>
 
     <div class="header-top">
         <div id="clock" class="datetime-display">--/--/---- --:--:--</div>
@@ -119,8 +111,8 @@
     <div class="header-top">
         <div class="mode-bar">
             <div style="display:flex; gap:10px;">
-                <label><input type="radio" name="mode" value="EXERCICE" checked onchange="updateMode('EXERCICE')"> EXO</label>
-                <label><input type="radio" name="mode" value="RÉEL" onchange="updateMode('RÉEL')"> RÉEL</label>
+                <label><input type="radio" name="mode" value="EXERCICE" id="radioExo" checked onchange="updateMode('EXERCICE')"> EXO</label>
+                <label><input type="radio" name="mode" value="RÉEL" id="radioReel" onchange="updateMode('RÉEL')"> RÉEL</label>
             </div>
             <div id="modeStatus" style="font-weight:bold;">EXERCICE</div>
         </div>
@@ -136,7 +128,7 @@
                 <button class="action-btn" onclick="resetAllData()" style="color:var(--red); background:none; border:none; font-size:0.65rem;">RÀZ</button>
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                <input type="text" id="medName" placeholder="MÉDECIN" oninput="updateMed(this.value)" class="action-btn">
+                <input type="text" id="medName" placeholder="MÉDECIN RESPONSABLE" oninput="updateMed(this.value)" class="action-btn">
                 <div class="flex-row">
                     <input type="text" id="siteLoc" placeholder="LOCALISATION" oninput="updateSiteLoc(this.value)" class="action-btn">
                     <button onclick="getGPSLocation('siteLoc')" style="background:#1e293b; border:1px solid var(--border); border-radius:6px; height:32px; width:32px; color:white;" class="action-btn">📍</button>
@@ -157,7 +149,8 @@
                 </div>
             </div>
 
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+            <div class="section-title">Victimes Adultes</div>
+            <div class="triage-grid">
                 <div class="category-card" style="border-top: 3px solid var(--red);">
                     <div class="section-title">UA</div><div class="count-value" id="count-red">0</div>
                     <div class="flex-row"><button class="btn-counter action-btn" onclick="changeVal('red', -1)">-</button><button class="btn-counter action-btn" onclick="changeVal('red', 1)">+</button></div>
@@ -175,6 +168,49 @@
                     <div class="flex-row"><button class="btn-counter action-btn" onclick="changeVal('black', -1)">-</button><button class="btn-counter action-btn" onclick="changeVal('black', 1)">+</button></div>
                 </div>
             </div>
+
+            <div class="section-title ped-title">Pédiatrie (Somme des classes d'âge)</div>
+            <div class="triage-grid">
+                <div class="category-card" style="border-top: 3px solid var(--ped-color);">
+                    <div class="section-title ped-title">UA PÉD</div><div class="count-value" id="count-ua_ped">0</div>
+                </div>
+                <div class="category-card" style="border-top: 3px solid var(--ped-color);">
+                    <div class="section-title ped-title">UR PÉD</div><div class="count-value" id="count-ur_ped">0</div>
+                </div>
+            </div>
+
+            <div class="section-box" style="border: 1px solid var(--ped-color);">
+                <div class="section-title ped-title">Détail par classe d'âge</div>
+                <div class="section-title" style="font-size: 0.5rem; margin-top:5px;">Nourrisson (< 3 ans)</div>
+                <div class="flex-row" style="margin-bottom:8px;">
+                    <button class="btn-counter action-btn" style="color:var(--red); font-size:0.7rem;" onclick="changeVal('ua_nourrisson', 1)">+ UA</button>
+                    <button class="btn-counter action-btn" style="color:var(--yellow); font-size:0.7rem;" onclick="changeVal('ur_nourrisson', 1)">+ UR</button>
+                    <div style="background:var(--border); padding:5px 10px; border-radius:5px; font-size:0.8rem; min-width:60px; text-align:center;">
+                        UA:<span id="count-ua_nourrisson">0</span> | UR:<span id="count-ur_nourrisson">0</span>
+                    </div>
+                    <button class="btn-remove action-btn" style="padding:5px; align-self:auto;" onclick="resetPedClass('nourrisson')">↺</button>
+                </div>
+
+                <div class="section-title" style="font-size: 0.5rem;">Enfant (3-10 ans)</div>
+                <div class="flex-row" style="margin-bottom:8px;">
+                    <button class="btn-counter action-btn" style="color:var(--red); font-size:0.7rem;" onclick="changeVal('ua_enfant', 1)">+ UA</button>
+                    <button class="btn-counter action-btn" style="color:var(--yellow); font-size:0.7rem;" onclick="changeVal('ur_enfant', 1)">+ UR</button>
+                    <div style="background:var(--border); padding:5px 10px; border-radius:5px; font-size:0.8rem; min-width:60px; text-align:center;">
+                        UA:<span id="count-ua_enfant">0</span> | UR:<span id="count-ur_enfant">0</span>
+                    </div>
+                    <button class="btn-remove action-btn" style="padding:5px; align-self:auto;" onclick="resetPedClass('enfant')">↺</button>
+                </div>
+
+                <div class="section-title" style="font-size: 0.5rem;">Adolescent (> 10 ans)</div>
+                <div class="flex-row">
+                    <button class="btn-counter action-btn" style="color:var(--red); font-size:0.7rem;" onclick="changeVal('ua_ado', 1)">+ UA</button>
+                    <button class="btn-counter action-btn" style="color:var(--yellow); font-size:0.7rem;" onclick="changeVal('ur_ado', 1)">+ UR</button>
+                    <div style="background:var(--border); padding:5px 10px; border-radius:5px; font-size:0.8rem; min-width:60px; text-align:center;">
+                        UA:<span id="count-ua_ado">0</span> | UR:<span id="count-ur_ado">0</span>
+                    </div>
+                    <button class="btn-remove action-btn" style="padding:5px; align-self:auto;" onclick="resetPedClass('ado')">↺</button>
+                </div>
+            </div>
         </section>
 
         <aside>
@@ -186,24 +222,36 @@
             <div class="section-box">
                 <div class="section-title">Radio & Logistique</div>
                 <input type="text" id="locPRM" placeholder="Localisation PRM" class="local-saisie">
-                <select id="evolStatus" class="local-saisie"><option value="NON ÉVOLUTIVE">SITUATION FIXE</option><option value="ÉVOLUTIVE">SITUATION ÉVOLUTIVE</option></select>
+                <select id="evolStatus" class="local-saisie">
+                    <option value="NON ÉVOLUTIVE">SITUATION NON EVOLUTIVE</option>
+                    <option value="ÉVOLUTIVE">SITUATION ÉVOLUTIVE</option>
+                </select>
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px;">
-                    <select id="typo1" class="local-saisie"><option value="">Nature 1</option></select>
-                    <select id="typo2" class="local-saisie"><option value="">Nature 2</option></select>
+                    <select id="typo1" class="local-saisie"><option value="">TYPOLOGIE 1</option></select>
+                    <select id="typo2" class="local-saisie"><option value=""> TYPOLOGIE 2</option></select>
                 </div>
-                <input type="text" id="vlmId" value="SMUR 1" class="local-saisie">
+                
+                <div class="section-title" style="margin-top:10px;">INDICATIF ÉMETTEUR</div>
+                <select id="vlmId" class="local-saisie" onchange="toggleOtherIndicatif(this.value)">
+                    <option value="1er Médecin sur les lieux">1er Médecin sur les lieux</option>
+                    <option value="DSM">DSM</option>
+                    <option value="Médecin chef PRV">Médecin chef PRV</option>
+                    <option value="Médecin chef PMA">Médecin chef PMA</option>
+                    <option value="Médecin EVAC">Médecin EVAC</option>
+                    <option value="AUTRE">Autre : préciser...</option>
+                </select>
+                <input type="text" id="vlmIdAutre" placeholder="Précisez l'indicatif..." class="local-saisie" style="display:none;">
+                
                 <button class="btn-primary" onclick="generateBilan()">GÉNÉRER SEQUENCE RADIO</button>
             </div>
-            <textarea id="radioText" rows="10" readonly style="font-size: 0.65rem; color: var(--accent);"></textarea>
+            <textarea id="radioText" rows="12" readonly style="font-size: 0.65rem; color: var(--accent); line-height: 1.4;"></textarea>
         </aside>
     </main>
 </div>
 
-<footer>&copy; 2026 AppliCata <span style="color:var(--accent)">v2.1.2</span></footer>
+<footer>© 2026 AppliCata <span style="color:var(--accent)">v2.1.6</span></footer>
 
 <script type="module">
-    // ... (Le script JavaScript reste identique, il gère la logique Firebase et l'affichage) ...
-    // Note : Assurez-vous d'inclure tout le bloc script de la réponse précédente ici.
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -221,23 +269,52 @@
 
     let isLocked = true;
     let localCurrentZone = "PRV 1"; 
-    let state = { mode: "EXERCICE", globalLoc: "", globalGPSUrl: "", zones: { "PRV 1": { red: 0, yellow: 0, green: 0, black: 0, med: "", loc: "", gpsUrl: "", besoins: [] } } };
+    
+    let state = { mode: "EXERCICE", globalLoc: "", globalGPSUrl: "", zones: { "PRV 1": { 
+        red: 0, yellow: 0, green: 0, black: 0, 
+        ua_nourrisson: 0, ur_nourrisson: 0,
+        ua_enfant: 0, ur_enfant: 0,
+        ua_ado: 0, ur_ado: 0,
+        med: "", loc: "", gpsUrl: "", besoins: [] 
+    } } };
 
     const besoinsOptions = ["Prévenir DSM d'astreinte", "Equipes médicales", "Infirmier (VLI)", "Lot PSM", "Antidotes", "Sacs damage control", "Unité de décontamination (UMD)", "Vecteurs terrestres", "Vecteurs aériens (Hélicoptère)", "CUMP", "Oxygène", "Soutien sanitaire opérationnel", "Autre : préciser"];
     const typs = ["Plaies par balles", "Plaies par arme blanche", "AVP – traumatologie", "Accident train", "Accident avion", "Incendie / explosion", "Intoxications", "Risque NRBC", "Catastrophe naturelle", "Autre"];
 
-    signInAnonymously(auth).then(() => {
-        onValue(triageRef, (s) => { if(s.val()) { state = s.val(); render(); } else { save(); } });
-    });
-
     const t1 = document.getElementById('typo1'), t2 = document.getElementById('typo2');
     typs.forEach(t => { t1.add(new Option(t,t)); t2.add(new Option(t,t)); });
 
-    window.save = () => set(triageRef, state);
-    window.checkPass = () => { if(document.getElementById('passInput').value === "SAMU30") { document.getElementById('loginScreen').style.display='none'; document.getElementById('appMain').style.display='block'; }};
-    window.toggleLock = () => { isLocked = !isLocked; render(); };
+    signInAnonymously(auth).then(() => {
+        onValue(triageRef, (s) => { 
+            if(s.val()) { state = s.val(); render(); } else { save(); } 
+        });
+    });
 
+    window.toggleOtherIndicatif = (val) => {
+        document.getElementById('vlmIdAutre').style.display = (val === "AUTRE") ? "block" : "none";
+    };
+
+    window.checkPass = () => {
+        const input = document.getElementById('passInput').value.trim().toUpperCase();
+        if(input === "SAMU30") {
+            document.getElementById('loginScreen').style.display='none';
+            document.getElementById('appMain').style.display='block';
+        } else { alert("Mot de passe incorrect"); }
+    };
+    document.getElementById('passInput').addEventListener('keypress', (e) => { if(e.key==='Enter') checkPass(); });
+
+    window.save = () => set(triageRef, state);
+    window.toggleLock = () => { isLocked = !isLocked; render(); };
     window.changeVal = (c, n) => { if(!isLocked) { state.zones[localCurrentZone][c] = Math.max(0, (state.zones[localCurrentZone][c]||0)+n); save(); }};
+    
+    window.resetPedClass = (cls) => {
+        if(!isLocked) {
+            state.zones[localCurrentZone]['ua_'+cls] = 0;
+            state.zones[localCurrentZone]['ur_'+cls] = 0;
+            save();
+        }
+    };
+
     window.updateMed = (v) => { state.zones[localCurrentZone].med = v; save(); };
     window.updateSiteLoc = (v) => { state.zones[localCurrentZone].loc = v; save(); };
     window.updateMode = (v) => { state.mode = v; save(); };
@@ -252,7 +329,7 @@
     };
     window.updateBesoinType = (idx, val) => { state.zones[localCurrentZone].besoins[idx].type = val; save(); };
     window.updateBesoinText = (idx, val) => { state.zones[localCurrentZone].besoins[idx].text = val; save(); };
-    window.removeBesoin = (idx) => { state.zones[localCurrentZone].besoins.splice(idx, 1); save(); };
+    window.removeBesoin = (idx) => { if(!isLocked) { state.zones[localCurrentZone].besoins.splice(idx, 1); save(); }};
 
     window.getGPSLocation = (fieldId) => {
         if (!navigator.geolocation) return;
@@ -274,57 +351,131 @@
 
     window.openStoredMap = (btn) => { const url = btn.getAttribute('data-url'); if(url) window.open(url, '_blank'); };
     window.switchZone = (z) => { localCurrentZone = z; render(); };
-    window.addZone = (p) => { if(!isLocked) { let n = p + " " + (Object.keys(state.zones).length + 1); state.zones[n] = { red: 0, yellow: 0, green: 0, black: 0, med: "", loc: "", besoins: [] }; localCurrentZone = n; save(); }};
+    
+    window.addZone = () => { 
+        if(!isLocked) { 
+            const type = prompt("Type de zone ? (PRV, PMA ou autre)", "PRV");
+            if (type === null) return;
+            
+            const num = (Object.keys(state.zones).filter(k => k.startsWith(type.toUpperCase())).length + 1);
+            const defaultName = type.toUpperCase() + " " + num;
+            const n = prompt("Nom de l'onglet ?", defaultName);
+            
+            if (n) {
+                state.zones[n] = { 
+                    red: 0, yellow: 0, green: 0, black: 0, 
+                    ua_nourrisson: 0, ur_nourrisson: 0,
+                    ua_enfant: 0, ur_enfant: 0,
+                    ua_ado: 0, ur_ado: 0,
+                    med: "", loc: "", besoins: [] 
+                }; 
+                localCurrentZone = n; save(); 
+            }
+        }
+    };
+    
     window.renameCurrentZone = () => { if(!isLocked) { const n = prompt("Nom :", localCurrentZone); if(n) { state.zones[n] = state.zones[localCurrentZone]; delete state.zones[localCurrentZone]; localCurrentZone = n; save(); }}};
-    window.resetAllData = () => { if(!isLocked && confirm("Tout effacer ?")) { state.zones = { "PRV 1": { red: 0, yellow: 0, green: 0, black: 0, med: "", loc: "", besoins: [] } }; save(); }};
+    window.resetAllData = () => { if(!isLocked && confirm("Tout effacer ?")) { state.zones = { "PRV 1": { red: 0, yellow: 0, green: 0, black: 0, ua_nourrisson: 0, ur_nourrisson: 0, ua_enfant: 0, ur_enfant: 0, ua_ado: 0, ur_ado: 0, med: "", loc: "", besoins: [] } }; save(); }};
 
     function render() {
         const cz = state.zones[localCurrentZone];
-        let tUA=0, tUR=0, tV=0;
-        Object.values(state.zones).forEach(z => { tUA += (z.red||0); tUR += (z.yellow||0); tV += (z.green||0); });
-        document.getElementById('global-total').innerText = tUA+tUR+tV;
-        document.getElementById('global-ua').innerText = tUA; document.getElementById('global-ur').innerText = tUR; document.getElementById('global-green').innerText = tV;
+        if(!cz) return;
 
-        document.getElementById('tabList').innerHTML = Object.keys(state.zones).map(z => `<button class="tab ${z===localCurrentZone?'active':''}" onclick="switchZone('${z}')">${z}</button>`).join('') + `<button class="tab action-btn" onclick="addZone('PMA')">+ PMA</button>`;
+        let tUA=0, tUR=0, tV=0, tDCD=0;
+        let tUA_P=0, tUR_P=0;
+
+        Object.values(state.zones).forEach(z => { 
+            tUA += (z.red||0); tUR += (z.yellow||0); tV += (z.green||0); tDCD += (z.black||0);
+            const uap = (z.ua_nourrisson||0) + (z.ua_enfant||0) + (z.ua_ado||0);
+            const urp = (z.ur_nourrisson||0) + (z.ur_enfant||0) + (z.ur_ado||0);
+            tUA_P += uap; tUR_P += urp;
+        });
+        
+        document.getElementById('globalSummary').innerHTML = `
+            <div class="summary-item"><div class="summary-label">Total</div><div class="summary-total">${tUA+tUR+tV+tUA_P+tUR_P}</div></div>
+            <div class="summary-item"><div class="summary-label">UA </div><div class="summary-total" style="color:var(--red)">${tUA+tUA_P}</div></div>
+            <div class="summary-item"><div class="summary-label">UR </div><div class="summary-total" style="color:var(--yellow)">${tUR+tUR_P}</div></div>
+            <div class="summary-item"><div class="summary-label">IMP</div><div class="summary-total" style="color:var(--green)">${tV}</div></div>
+        `;
+
+        document.getElementById('tabList').innerHTML = Object.keys(state.zones).map(z => `<button class="tab ${z===localCurrentZone?'active':''}" onclick="switchZone('${z}')">${z}</button>`).join('') + `<button class="tab action-btn" onclick="addZone()">+ AJOUTER ZONE</button>`;
         
         document.getElementById('activeTitle').innerText = localCurrentZone;
-        document.getElementById('count-red').innerText = cz.red; document.getElementById('count-yellow').innerText = cz.yellow; document.getElementById('count-green').innerText = cz.green; document.getElementById('count-black').innerText = cz.black;
-        document.getElementById('medName').value = cz.med || ""; document.getElementById('siteLoc').value = cz.loc || "";
+        
+        document.getElementById('count-red').innerText = cz.red||0; 
+        document.getElementById('count-yellow').innerText = cz.yellow||0; 
+        document.getElementById('count-green').innerText = cz.green||0; 
+        document.getElementById('count-black').innerText = cz.black||0;
+        
+        document.getElementById('count-ua_nourrisson').innerText = cz.ua_nourrisson||0;
+        document.getElementById('count-ur_nourrisson').innerText = cz.ur_nourrisson||0;
+        document.getElementById('count-ua_enfant').innerText = cz.ua_enfant||0;
+        document.getElementById('count-ur_enfant').innerText = cz.ur_enfant||0;
+        document.getElementById('count-ua_ado').innerText = cz.ua_ado||0;
+        document.getElementById('count-ur_ado').innerText = cz.ur_ado||0;
+
+        document.getElementById('count-ua_ped').innerText = (cz.ua_nourrisson||0) + (cz.ua_enfant||0) + (cz.ua_ado||0);
+        document.getElementById('count-ur_ped').innerText = (cz.ur_nourrisson||0) + (cz.ur_enfant||0) + (cz.ur_ado||0);
+        
+        document.getElementById('medName').value = cz.med || ""; 
+        document.getElementById('siteLoc').value = cz.loc || "";
         document.getElementById('locSinistre').value = state.globalLoc || "";
         document.getElementById('modeStatus').innerText = state.mode;
+        
+        document.getElementById('radioExo').checked = state.mode === "EXERCICE";
+        document.getElementById('radioReel').checked = state.mode === "RÉEL";
 
-        const bS = document.getElementById('openSiteMap'); if(cz.gpsUrl){ bS.setAttribute('data-url', cz.gpsUrl); bS.classList.add('active'); } else bS.classList.remove('active');
-        const bG = document.getElementById('openGlobalMap'); if(state.globalGPSUrl){ bG.setAttribute('data-url', state.globalGPSUrl); bG.classList.add('active'); } else bG.classList.remove('active');
+        const bS = document.getElementById('openSiteMap'); 
+        if(cz.gpsUrl){ bS.setAttribute('data-url', cz.gpsUrl); bS.classList.add('active'); } else bS.classList.remove('active');
+        const bG = document.getElementById('openGlobalMap'); 
+        if(state.globalGPSUrl){ bG.setAttribute('data-url', state.globalGPSUrl); bG.classList.add('active'); } else bG.classList.remove('active');
 
         const bCont = document.getElementById('besoinsContainer');
         bCont.innerHTML = (cz.besoins || []).map((b, i) => `
             <div class="besoin-row">
-                <div style="flex-grow:1;">
-                    <select onchange="updateBesoinType(${i}, this.value)" class="action-btn">
-                        ${besoinsOptions.map(o => `<option value="${o}" ${b.type===o?'selected':''}>${o}</option>`).join('')}
-                    </select>
-                    ${b.type.includes('Autre') ? `<input type="text" placeholder="Détaillez..." value="${b.text}" oninput="updateBesoinText(${i}, this.value)" class="action-btn">` : ''}
-                </div>
-                <button class="btn-remove action-btn" onclick="removeBesoin(${i})">✕</button>
+                <select onchange="updateBesoinType(${i}, this.value)" class="action-btn">
+                    ${besoinsOptions.map(o => `<option value="${o}" ${b.type===o?'selected':''}>${o}</option>`).join('')}
+                </select>
+                ${b.type.includes('Autre') ? `<input type="text" placeholder="Détaillez..." value="${b.text||''}" oninput="updateBesoinText(${i}, this.value)" class="action-btn">` : ''}
+                <button class="btn-remove action-btn" onclick="removeBesoin(${i})">✕ Retirer</button>
             </div>
         `).join('');
 
-        document.querySelectorAll('.action-btn, .local-saisie, .btn-counter').forEach(el => el.disabled = isLocked);
+        document.querySelectorAll('.action-btn, .local-saisie, .btn-counter, input[name="mode"]').forEach(el => el.disabled = isLocked);
         document.getElementById('lockIcon').innerText = isLocked ? "🔒" : "🔓";
         document.getElementById('lockBtn').className = isLocked ? "lock-btn locked" : "lock-btn";
         document.querySelectorAll('.count-value').forEach(c => isLocked ? c.classList.add('locked-data') : c.classList.remove('locked-data'));
     }
 
     window.generateBilan = () => {
-        const cz = state.zones[localCurrentZone];
-        const prefix = state.mode === "EXERCICE" ? "*** EXERCICE ***\n" : "*** RÉEL ***\n";
-        const needs = (cz.besoins || []).map(b => `- ${b.type}${b.text?' : '+b.text:''}`).join('\n');
-        let msg = `${prefix}HORODATAGE : ${new Date().toLocaleString('fr-FR')}\nDE : ${document.getElementById('vlmId').value}\n\n`;
-        msg += `1. JE SUIS :\n- Secteur : ${localCurrentZone}\n- Pos : ${cz.loc || 'N/C'}\n- Resp : ${cz.med || 'N/C'}\n\n`;
-        msg += `2. JE VOIS :\n- Nature : ${document.getElementById('typo1').value} / ${document.getElementById('typo2').value}\n- Sécu : ${document.getElementById('secureStatus').value}\n- Bilan : UA:${cz.red} / UR:${cz.yellow} / V:${cz.green}\n\n`;
-        msg += `3. JE PRÉVOIS :\n- PRM : ${document.getElementById('locPRM').value || 'N/C'}\n- Évolution : ${document.getElementById('evolStatus').value}\n\n`;
-        msg += `4. BESOINS :\n${needs || '- Néant'}\n\n${prefix}*** TERMINÉ ***`;
-        document.getElementById('radioText').value = msg;
+        try {
+            const cz = state.zones[localCurrentZone];
+            const prefix = state.mode === "EXERCICE" ? "*** EXERCICE ***\n" : "*** RÉEL ***\n";
+            const baseIndicatif = document.getElementById('vlmId').value;
+            const indicatif = (baseIndicatif === "AUTRE") ? document.getElementById('vlmIdAutre').value : baseIndicatif;
+            const needs = (cz.besoins || []).map(b => `- ${b.type}${b.text ? ' : ' + b.text : ''}`).join('\n');
+            
+            // Calculs Victimes Pédiatriques
+            const uap = (cz.ua_nourrisson||0) + (cz.ua_enfant||0) + (cz.ua_ado||0);
+            const urp = (cz.ur_nourrisson||0) + (cz.ur_enfant||0) + (cz.ur_ado||0);
+            
+            // Addition Totale du secteur (Adultes + Pédiatriques)
+            const totalVois = (cz.red||0) + (cz.yellow||0) + (cz.green||0) + uap + urp;
+
+            let msg = `${prefix}SAMU 30 de ${indicatif || 'N/C'}\n`;
+            msg += `HORODATAGE : ${new Date().toLocaleTimeString('fr-FR')}\n\n`;
+            msg += `1. JE SUIS :\n- Secteur : ${localCurrentZone}\n- Localisation : ${cz.loc || 'N/C'}\n- Responsable : ${cz.med || 'N/C'}\n\n`;
+            msg += `2. JE VOIS :\n- Nature : ${document.getElementById('typo1').value || 'N/C'} / ${document.getElementById('typo2').value || 'N/C'}\n`;
+            msg += `- Bilan Victimes ADULTES : UA:${cz.red} / UR:${cz.yellow} / IMP:${cz.green}\n`;
+            msg += `- Bilan Victimes PÉDIATRIQUES : UA:${uap} / UR:${urp}\n`;
+            msg += `- TOTAL VICTIMES DU SECTEUR : ${totalVois}\n\n`;
+            msg += `3. JE PRÉVOIS :\n- Localisation PRM : ${document.getElementById('locPRM').value || 'N/C'}\n- Évolution : ${document.getElementById('evolStatus').value}\n\n`;
+            msg += `4. JE FAIS :\n- Triage et sécurisation du secteur.\n\n`;
+            msg += `5. JE DEMANDE :\n${needs || '- Néant pour le moment'}\n\n`;
+            msg += `${prefix}À VOUS. TERMINÉ.`;
+            
+            document.getElementById('radioText').value = msg;
+        } catch (e) { alert("Erreur lors de la génération du bilan."); }
     };
 
     setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleString('fr-FR'); }, 1000);
